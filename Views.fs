@@ -116,6 +116,9 @@ let sidebarElements (nav: ReactElement) =
                     [ prop.id "search-form"
                       prop.role "search"
                       prop.custom ("data-discover", true)
+                      hx.get "/"
+                      hx.target "#contacts"
+                      hx.pushUrl true
                       prop.children
                           [ Html.input
                                 [ prop.id "q"

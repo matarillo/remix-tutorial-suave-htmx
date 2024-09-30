@@ -5,9 +5,14 @@ open Suave.Filters
 open Suave.Operators
 open Suave.Successful
 
+let (|Plain|Htmx|) ctx =
+    let hxRequest = ctx.request.headers |> List.tryFind (fun (k, _) -> k = "hx-request")
+    if hxRequest.IsSome then Htmx else Plain
+
 let rootAppTemplate detail =
     async {
         let! contacts = Data.getContacts ()
+
         let sidebar = Views.sidebarElements (Views.navElement contacts)
         return Views.appView sidebar detail
     }
@@ -16,8 +21,27 @@ let rootApp: WebPart =
     path "/"
     >=> fun ctx ->
         async {
-            let! view = rootAppTemplate Views.emptyDetailElement
-            return! OK view ctx
+            let q = ctx.request.queryParamOpt "q"
+
+            let query =
+                match q with
+                | Some(k, v) -> v
+                | None -> None
+
+            let! contacts =
+                match query with
+                | Some q -> Data.queryContacts q
+                | None -> Data.getContacts ()
+
+            let nav = Views.navElement contacts
+
+            match ctx with
+            | Htmx ->
+                let view = Views.partialView nav
+                return! OK view ctx
+            | Plain ->
+                let view = Views.appView (Views.sidebarElements nav) Views.emptyDetailElement
+                return! OK view ctx
         }
 
 let createContactApp: WebPart =
