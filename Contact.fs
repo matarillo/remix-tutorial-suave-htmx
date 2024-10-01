@@ -14,7 +14,9 @@ let htmxAppTemplate contactElement ctx =
     async {
         match ctx with
         | Htmx ->
-            let view = Views.partialView contactElement
+            let! oobElements = Root.swapSidebar None
+            let resultElements = Views.fragment (contactElement :: oobElements)
+            let view = Views.partialView resultElements
             return! OK view ctx
         | Plain ->
             let! view = Root.rootAppTemplate contactElement
@@ -91,8 +93,8 @@ let editContactApp =
                             | Error msg -> return! BAD_REQUEST msg ctx
                             | Ok c ->
                                 let contactElement = Views.contactElement c
-                                let! navElement = Root.swapNav // Re-sort the list as a result of the name change
-                                let fragment = Views.fragment [ contactElement; navElement ]
+                                let! oobElement = Root.swapNav // Re-sort the list as a result of the name change
+                                let fragment = Views.fragment [ contactElement; oobElement ]
                                 let view = Views.partialView fragment
                                 return! OK view ctx
                     }))

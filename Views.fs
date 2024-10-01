@@ -63,16 +63,39 @@ let contactElement (contact: Data.ContactRecord) =
 let contactPartialView = contactElement >> Render.htmlView
 
 let emptyDetailElement =
-    Html.p [
-        prop.id "index-page"
-        prop.children [
-            Html.text "This is a demo for Remix."
-            Html.br []
-            Html.text "Check out "
-            Html.a [ prop.href "https://remix.run"; prop.text "the docs at remix.run"]
-            Html.text "."
-        ]
-    ]
+    Html.p
+        [ prop.id "index-page"
+          prop.children
+              [ Html.text "This is a demo for Remix."
+                Html.br []
+                Html.text "Check out "
+                Html.a [ prop.href "https://remix.run"; prop.text "the docs at remix.run" ]
+                Html.text "." ] ]
+
+let searchFormElement (query: string option) =
+    let inputValue = Option.defaultValue "" query
+
+    Html.form
+        [ prop.id "search-form"
+          prop.role "search"
+          prop.custom ("data-discover", true)
+          hx.get "/"
+          hx.target "#contacts"
+          hx.pushUrl true
+          hx.swapOob "true"
+          prop.children
+              [ Html.input
+                    [ prop.id "q"
+                      prop.name "q"
+                      prop.type' "search"
+                      hx.get "/"
+                      hx.target "#contacts"
+                      hx.pushUrl true
+                      hx.trigger "input changed delay:500ms, search" 
+                      prop.placeholder "Search"
+                      prop.ariaLabel "Search contacts"
+                      prop.value inputValue ]
+                Html.div [ prop.id "search-spinner"; prop.ariaHidden true; prop.hidden true ] ] ]
 
 let notFoundDetailElement = Html.h1 "Not Found"
 
@@ -108,25 +131,11 @@ let navElement (contacts: Data.ContactRecord list) =
                 | _ :: _ -> Html.ul [ for contact in contacts -> navListItem false contact ]
                 | _ -> Html.p [ Html.i "No contacts" ] ] ]
 
-let sidebarElements (nav: ReactElement) =
+let sidebarElements (query : string option) (nav: ReactElement) =
     fragment
         [ Html.h1 [ prop.text "Remix Contacts" ]
           Html.div
-              [ Html.form
-                    [ prop.id "search-form"
-                      prop.role "search"
-                      prop.custom ("data-discover", true)
-                      hx.get "/"
-                      hx.target "#contacts"
-                      hx.pushUrl true
-                      prop.children
-                          [ Html.input
-                                [ prop.id "q"
-                                  prop.name "q"
-                                  prop.type' "search"
-                                  prop.placeholder "Search"
-                                  prop.ariaLabel "Search contacts" ]
-                            Html.div [ prop.id "search-spinner"; prop.ariaHidden true; prop.hidden true ] ] ]
+              [ searchFormElement query
                 Html.form
                     [ prop.action "/"
                       hx.post "/"

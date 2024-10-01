@@ -13,7 +13,7 @@ let rootAppTemplate detail =
     async {
         let! contacts = Data.getContacts ()
 
-        let sidebar = Views.sidebarElements (Views.navElement contacts)
+        let sidebar = Views.sidebarElements None (Views.navElement contacts)
         return Views.appView sidebar detail
     }
 
@@ -40,7 +40,7 @@ let rootApp: WebPart =
                 let view = Views.partialView nav
                 return! OK view ctx
             | Plain ->
-                let view = Views.appView (Views.sidebarElements nav) Views.emptyDetailElement
+                let view = Views.appView (Views.sidebarElements query nav) Views.emptyDetailElement
                 return! OK view ctx
         }
 
@@ -67,4 +67,15 @@ let swapNav =
     async {
         let! contacts = Data.getContacts ()
         return Views.navElement contacts
+    }
+
+let swapSidebar (query : string option) =
+    async {
+        let searchForm = Views.searchFormElement query
+        let! contacts =
+                    match query with
+                    | Some q -> Data.queryContacts q
+                    | None -> Data.getContacts ()
+        let nav = Views.navElement contacts
+        return [ searchForm; nav]
     }
