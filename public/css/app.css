@@ -158,8 +158,16 @@ body {
   position: relative;
 }
 
-#sidebar > div form input[type="search"].loading {
+#sidebar > div form input[type="search"].htmx-request {
   background-image: none;
+}
+
+.search-spinner {
+  display: none;
+}
+
+.htmx-request ~ .search-spinner {
+  display: unset;
 }
 
 #search-spinner {

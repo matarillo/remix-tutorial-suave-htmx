@@ -119,6 +119,7 @@ module private FakeContacts =
 let getContacts = FakeContacts.getAll
 
 let queryContacts (query: string) =
+    System.Threading.Thread.Sleep 1000
     async {
         let! contacts = FakeContacts.getAll ()
         let loweredQuery = query.ToLowerInvariant()

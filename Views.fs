@@ -82,6 +82,7 @@ let searchFormElement (query: string option) =
           hx.get "/"
           hx.target "#contacts"
           hx.pushUrl true
+          hx.indicator "#q"
           hx.swapOob "true"
           prop.children
               [ Html.input
@@ -91,11 +92,11 @@ let searchFormElement (query: string option) =
                       hx.get "/"
                       hx.target "#contacts"
                       hx.pushUrl true
-                      hx.trigger "input changed delay:500ms, search" 
+                      hx.trigger "input changed delay:500ms, search"
                       prop.placeholder "Search"
                       prop.ariaLabel "Search contacts"
                       prop.value inputValue ]
-                Html.div [ prop.id "search-spinner"; prop.ariaHidden true; prop.hidden true ] ] ]
+                Html.div [ prop.id "search-spinner"; prop.ariaHidden true; prop.className "search-spinner" ] ] ]
 
 let notFoundDetailElement = Html.h1 "Not Found"
 
