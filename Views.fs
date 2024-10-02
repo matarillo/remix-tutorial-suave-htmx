@@ -53,10 +53,12 @@ let contactElement (contact: Data.ContactRecord) =
                                 [ hx.get $"/contacts/{contact.id}/edit"
                                   hx.target "#detail"
                                   hx.pushUrl true
+                                  hx.indicator "body"
                                   prop.children [ Html.button [ prop.type' "submit"; prop.text "Edit" ] ] ]
                             Html.form
                                 [ prop.action "destroy"
                                   hx.post $"/contacts/{contact.id}/destroy"
+                                  hx.indicator "body"
                                   hx.confirm "Please confirm you want to delete this record."
                                   prop.children [ Html.button [ prop.type' "submit"; prop.text "Delete" ] ] ] ] ] ] ]
 
@@ -82,7 +84,6 @@ let searchFormElement (query: string option) =
           hx.get "/"
           hx.target "#contacts"
           hx.pushUrl true
-          hx.indicator "#q"
           hx.swapOob "true"
           prop.children
               [ Html.input
@@ -92,6 +93,7 @@ let searchFormElement (query: string option) =
                       hx.get "/"
                       hx.target "#contacts"
                       hx.pushUrl true
+                      hx.indicator "#search-form"
                       hx.trigger "input changed delay:500ms, search"
                       prop.placeholder "Search"
                       prop.ariaLabel "Search contacts"
@@ -106,6 +108,7 @@ let htmxLink target (contact: Data.ContactRecord) =
           hx.get $"/contacts/{contact.id}"
           hx.target target
           hx.pushUrl true
+          hx.indicator "body"
           prop.children
               [ if hasValue contact.first || hasValue contact.last then
                     Html.text $"{contact.first} {contact.last}"
@@ -140,6 +143,7 @@ let sidebarElements (query : string option) (nav: ReactElement) =
                 Html.form
                     [ prop.action "/"
                       hx.post "/"
+                      hx.indicator "body"
                       prop.children [ Html.button [ prop.type' "submit"; prop.text "New" ] ] ] ]
           nav ]
 
@@ -169,6 +173,7 @@ let editContactElement (contact: Data.ContactRecord) =
         [ prop.key contact.id
           prop.id "contact-form"
           hx.post $"/contacts/{contact.id}/edit"
+          hx.indicator "body"
           hx.target "#detail"
           prop.custom ("hx-push-url", $"/contacts/{contact.id}")
           prop.children
