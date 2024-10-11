@@ -6,8 +6,8 @@ open Feliz.ViewEngine.Htmx
 let inline fragment elements = React.fragment elements
 
 let defaultError (message: string) =
-    "<!DOCTYPE html>"
-    + Render.htmlView (Html.html [ Html.head [ Html.title "Error" ]; Html.body [ Html.h1 message ] ])
+    Html.html [ Html.head [ Html.title "Error" ]; Html.body [ Html.h1 message ] ]
+    |> Render.htmlDocument
 
 let inline private hasValue s = not (String.isEmpty s)
 
@@ -98,7 +98,10 @@ let searchFormElement (query: string option) =
                       prop.placeholder "Search"
                       prop.ariaLabel "Search contacts"
                       prop.value inputValue ]
-                Html.div [ prop.id "search-spinner"; prop.ariaHidden true; prop.className "search-spinner" ] ] ]
+                Html.div
+                    [ prop.id "search-spinner"
+                      prop.ariaHidden true
+                      prop.className "search-spinner" ] ] ]
 
 let notFoundDetailElement = Html.h1 "Not Found"
 
@@ -135,7 +138,7 @@ let navElement (contacts: Data.ContactRecord list) =
                 | _ :: _ -> Html.ul [ for contact in contacts -> navListItem false contact ]
                 | _ -> Html.p [ Html.i "No contacts" ] ] ]
 
-let sidebarElements (query : string option) (nav: ReactElement) =
+let sidebarElements (query: string option) (nav: ReactElement) =
     fragment
         [ Html.h1 [ prop.text "Remix Contacts" ]
           Html.div
@@ -163,8 +166,7 @@ let appElement (sidebar: ReactElement) (detail: ReactElement) =
                       Html.div [ prop.id "detail"; prop.children detail ] ] ] ]
 
 let appView sidebar detail =
-    let html = appElement sidebar detail |> Render.htmlView
-    "<!DOCTYPE html>" + html
+    appElement sidebar detail |> Render.htmlDocument
 
 let partialView (element: ReactElement) = Render.htmlView element
 
