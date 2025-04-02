@@ -105,9 +105,10 @@ let searchFormElement (query: string option) =
 
 let notFoundDetailElement = Html.h1 "Not Found"
 
-let htmxLink target (contact: Data.ContactRecord) =
+let htmxLink target (isActive: bool) (contact: Data.ContactRecord) =
     Html.a
         [ prop.href "#"
+          if isActive then prop.className "active"
           hx.get $"/contacts/{contact.id}"
           hx.target target
           hx.pushUrl true
@@ -120,8 +121,8 @@ let htmxLink target (contact: Data.ContactRecord) =
                 Html.text " "
                 if contact.favorite then Html.span "★" else Html.none ] ]
 
-let navListItem (isOobResponse: bool) (contact: Data.ContactRecord) =
-    let props = [ prop.key contact.id; prop.children [ htmxLink "#detail" contact ] ]
+let navListItem (isOobResponse: bool) (isActive: bool) (contact: Data.ContactRecord) =
+    let props = [ prop.key contact.id; prop.children [ htmxLink "#detail" isActive contact ] ]
 
     if isOobResponse then
         let swapOob = hx.swapOob $"""true:ul>li[key="{contact.id}"]"""
@@ -129,13 +130,17 @@ let navListItem (isOobResponse: bool) (contact: Data.ContactRecord) =
     else
         Html.li props
 
-let navElement (contacts: Data.ContactRecord list) =
+let navElement (selectedId: string option) (contacts: Data.ContactRecord list) =
+    let isActive (contact: Data.ContactRecord) =
+        match (contact.id, selectedId) with
+        | id, Some selectedId when id = selectedId -> true
+        | _ -> false
     Html.nav
         [ prop.id "contacts"
           hx.swapOob "true"
           prop.children
               [ match contacts with
-                | _ :: _ -> Html.ul [ for contact in contacts -> navListItem false contact ]
+                | _ :: _ -> Html.ul [ for contact in contacts -> navListItem false (isActive contact) contact ]
                 | _ -> Html.p [ Html.i "No contacts" ] ] ]
 
 let sidebarElements (query: string option) (nav: ReactElement) =

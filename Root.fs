@@ -9,11 +9,11 @@ let (|Plain|Htmx|) ctx =
     let hxRequest = ctx.request.headers |> List.tryFind (fun (k, _) -> k = "hx-request")
     if hxRequest.IsSome then Htmx else Plain
 
-let rootAppTemplate detail =
+let rootAppTemplate (selectedId: string option) detail =
     async {
         let! contacts = Data.getContacts ()
 
-        let sidebar = Views.sidebarElements None (Views.navElement contacts)
+        let sidebar = Views.sidebarElements None (Views.navElement selectedId contacts)
         return Views.appView sidebar detail
     }
 
@@ -25,7 +25,7 @@ let rootApp: WebPart =
 
             let query =
                 match q with
-                | Some(k, v) -> v
+                | Some(_, v) -> v
                 | None -> None
 
             let! contacts =
@@ -33,7 +33,7 @@ let rootApp: WebPart =
                 | Some q -> Data.queryContacts q
                 | None -> Data.getContacts ()
 
-            let nav = Views.navElement contacts
+            let nav = Views.navElement None contacts
 
             match ctx with
             | Htmx ->
@@ -63,19 +63,21 @@ let createContactApp: WebPart =
             return! CREATED "" newCtx
         }
 
-let swapNav =
+let swapNav (selectedId: string option) =
     async {
         let! contacts = Data.getContacts ()
-        return Views.navElement contacts
+        return Views.navElement selectedId contacts
     }
 
-let swapSidebar (query : string option) =
+let swapSidebar (selectedId: string option) (query: string option) =
     async {
         let searchForm = Views.searchFormElement query
+
         let! contacts =
-                    match query with
-                    | Some q -> Data.queryContacts q
-                    | None -> Data.getContacts ()
-        let nav = Views.navElement contacts
-        return [ searchForm; nav]
+            match query with
+            | Some q -> Data.queryContacts q
+            | None -> Data.getContacts ()
+
+        let nav = Views.navElement selectedId contacts
+        return [ searchForm; nav ]
     }

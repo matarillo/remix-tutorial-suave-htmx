@@ -10,16 +10,16 @@ let (|Plain|Htmx|) ctx =
     let hxRequest = ctx.request.headers |> List.tryFind (fun (k, _) -> k = "hx-request")
     if hxRequest.IsSome then Htmx else Plain
 
-let htmxAppTemplate contactElement ctx =
+let htmxAppTemplate (selectedId: string option) contactElement ctx =
     async {
         match ctx with
         | Htmx ->
-            let! oobElements = Root.swapSidebar None
+            let! oobElements = Root.swapSidebar selectedId None
             let resultElements = Views.fragment (contactElement :: oobElements)
             let view = Views.partialView resultElements
             return! OK view ctx
         | Plain ->
-            let! view = Root.rootAppTemplate contactElement
+            let! view = Root.rootAppTemplate selectedId contactElement
             return! OK view ctx
     }
 
@@ -32,8 +32,12 @@ let getContactApp: WebPart =
                 match contact with
                 | Ok c -> Views.contactElement c
                 | Error msg -> Views.notFoundDetailElement
+            let selectedId =
+                match contact with
+                | Ok c -> Some c.id
+                | _    -> None
 
-            return! htmxAppTemplate contactElement ctx
+            return! htmxAppTemplate selectedId contactElement ctx
         })
 
 let htmxToggleFavoriteApp: WebPart =
@@ -55,7 +59,7 @@ let htmxToggleFavoriteApp: WebPart =
                             | Error msg -> return! BAD_REQUEST msg ctx
                             | Ok c ->
                                 let favButton = Views.favButton c
-                                let navListItem = Views.navListItem true c
+                                let navListItem = Views.navListItem true true c // selected and updated
                                 let fragment = Views.fragment [ favButton; navListItem ]
                                 let view = Views.partialView fragment
                                 return! OK view ctx
@@ -70,8 +74,12 @@ let getEditContactApp: WebPart =
                 match contact with
                 | Ok c -> Views.editContactElement c
                 | Error msg -> Views.notFoundDetailElement
+            let selectedId =
+                match contact with
+                | Ok c -> Some c.id
+                | _    -> None
 
-            return! htmxAppTemplate contactElement ctx
+            return! htmxAppTemplate selectedId contactElement ctx
         })
 
 let editContactApp =
@@ -93,7 +101,7 @@ let editContactApp =
                             | Error msg -> return! BAD_REQUEST msg ctx
                             | Ok c ->
                                 let contactElement = Views.contactElement c
-                                let! oobElement = Root.swapNav // Re-sort the list as a result of the name change
+                                let! oobElement = Root.swapNav (Some c.id) // Re-sort the list as a result of the name change
                                 let fragment = Views.fragment [ contactElement; oobElement ]
                                 let view = Views.partialView fragment
                                 return! OK view ctx
