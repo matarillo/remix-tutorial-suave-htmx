@@ -11,20 +11,20 @@ let app =
     choose
         [ GET
           >=> choose
-                  [ Root.rootApp
-                    Main.mainApp
-                    Main.getResponseApp
-                    Contact.getEditContactApp
-                    Contact.getContactApp
+                  [ path "/" >=> Root.rootApp
+                    path "/main" >=> Main.mainApp
+                    path "/clicked" >=> Main.getResponseApp
+                    pathScan "/contacts/%s/edit" Contact.getEditContactApp
+                    pathScan "/contacts/%s" Contact.getContactApp
                     browseHome ]
           POST
           >=> choose
-                  [ Root.createContactApp
-                    Contact.editContactApp
-                    Contact.destroyContactApp
-                    Contact.htmxToggleFavoriteApp
-                    RequestErrors.METHOD_NOT_ALLOWED (Views.defaultError "405 Method Not Allowed") ]
-          RequestErrors.METHOD_NOT_ALLOWED (Views.defaultError "405 Method Not Allowed") ]
+                  [ path "/" >=> Root.createContactApp
+                    pathScan "/contacts/%s/edit" Contact.editContactApp
+                    pathScan "/contacts/%s/destroy" Contact.destroyContactApp
+                    pathScan "/contacts/%s" Contact.htmxToggleFavoriteApp
+                    RequestErrors.METHOD_NOT_ALLOWED(Views.defaultError "405 Method Not Allowed") ]
+          RequestErrors.METHOD_NOT_ALLOWED(Views.defaultError "405 Method Not Allowed") ]
 
 let config =
     { defaultConfig with

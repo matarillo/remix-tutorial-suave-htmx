@@ -1,8 +1,6 @@
 module Root
 
 open Suave
-open Suave.Filters
-open Suave.Operators
 open Suave.Successful
 
 let (|Plain|Htmx|) ctx =
@@ -18,8 +16,7 @@ let rootAppTemplate (selectedId: string option) detail =
     }
 
 let rootApp: WebPart =
-    path "/"
-    >=> fun ctx ->
+    fun ctx ->
         async {
             let q = ctx.request.queryParamOpt "q"
 
@@ -45,8 +42,7 @@ let rootApp: WebPart =
         }
 
 let createContactApp: WebPart =
-    path "/"
-    >=> fun ctx ->
+    fun ctx ->
         async {
             let! contact = Data.createEmptyContact ()
             // return! Redirection.see_other $"/contacts/{contact.id}/edit" ctx

@@ -1,7 +1,5 @@
 module Main
 
-open Suave.Filters
-open Suave.Operators
 open Suave.Successful
 open Feliz.ViewEngine
 open Feliz.ViewEngine.Htmx
@@ -32,10 +30,10 @@ let mainLayout =
           Html.body body ]
     |> Render.htmlView
 
-let mainApp = path "/main" >=> OK mainLayout
+let mainApp = OK mainLayout
 
 let ssr =
     Html.ul [ Html.li "H"; Html.li "T"; Html.li "M"; Html.li "X" ]
     |> Render.htmlView
 
-let getResponseApp = path "/clicked" >=> OK ssr
+let getResponseApp = OK ssr
