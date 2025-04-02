@@ -14,9 +14,7 @@ let htmxAppTemplate (selectedId: string option) (contactElement: ReactElement) :
         async {
             match ctx with
             | Htmx ->
-                let! oobElements = Root.swapSidebar selectedId None
-                let resultElements = Views.fragment (contactElement :: oobElements)
-                let view = Views.partialView resultElements
+                let view = Views.partialView contactElement
                 return! OK view ctx
             | Plain ->
                 let! view = Root.rootAppTemplate selectedId contactElement
@@ -59,7 +57,7 @@ let htmxToggleFavoriteApp (id: string) : WebPart =
                         | Error msg -> return! BAD_REQUEST msg ctx
                         | Ok c ->
                             let favButton = Views.favButton c
-                            let navListItem = Views.navListItem true true c // selected and updated
+                            let navListItem = Views.navListItem true c
                             let fragment = Views.fragment [ favButton; navListItem ]
                             let view = Views.partialView fragment
                             return! OK view ctx
@@ -101,7 +99,7 @@ let editContactApp (id: string) : WebPart =
                         | Error msg -> return! BAD_REQUEST msg ctx
                         | Ok c ->
                             let contactElement = Views.contactElement c
-                            let! oobElement = Root.swapNav (Some c.id) // Re-sort the list as a result of the name change
+                            let! oobElement = Root.swapNav // Re-sort the list as a result of the name change
                             let fragment = Views.fragment [ contactElement; oobElement ]
                             let view = Views.partialView fragment
                             return! OK view ctx

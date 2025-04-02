@@ -11,7 +11,7 @@ let rootAppTemplate (selectedId: string option) detail =
     async {
         let! contacts = Data.getContacts ()
 
-        let sidebar = Views.sidebarElements None (Views.navElement selectedId contacts)
+        let sidebar = Views.sidebarElements None selectedId (Views.navElement contacts)
         return Views.appView sidebar detail
     }
 
@@ -30,14 +30,16 @@ let rootApp: WebPart =
                 | Some q -> Data.queryContacts q
                 | None -> Data.getContacts ()
 
-            let nav = Views.navElement None contacts
+            let nav = Views.navElement contacts
 
             match ctx with
             | Htmx ->
                 let view = Views.partialView nav
                 return! OK view ctx
             | Plain ->
-                let view = Views.appView (Views.sidebarElements query nav) Views.emptyDetailElement
+                let view =
+                    Views.appView (Views.sidebarElements query None nav) Views.emptyDetailElement
+
                 return! OK view ctx
         }
 
@@ -59,13 +61,13 @@ let createContactApp: WebPart =
             return! CREATED "" newCtx
         }
 
-let swapNav (selectedId: string option) =
+let swapNav =
     async {
         let! contacts = Data.getContacts ()
-        return Views.navElement selectedId contacts
+        return Views.navElement contacts
     }
 
-let swapSidebar (selectedId: string option) (query: string option) =
+let swapSidebar (query: string option) =
     async {
         let searchForm = Views.searchFormElement query
 
@@ -74,6 +76,6 @@ let swapSidebar (selectedId: string option) (query: string option) =
             | Some q -> Data.queryContacts q
             | None -> Data.getContacts ()
 
-        let nav = Views.navElement selectedId contacts
+        let nav = Views.navElement contacts
         return [ searchForm; nav ]
     }

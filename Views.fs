@@ -105,14 +105,15 @@ let searchFormElement (query: string option) =
 
 let notFoundDetailElement = Html.h1 "Not Found"
 
-let htmxLink target (isActive: bool) (contact: Data.ContactRecord) =
+let htmxLink target (contact: Data.ContactRecord) =
     Html.a
         [ prop.href "#"
-          if isActive then prop.className "active"
           hx.get $"/contacts/{contact.id}"
           hx.target target
           hx.pushUrl true
           hx.indicator "body"
+          Interop.mkAttr ":class" "{'active': selectedContactKey === $el.closest('li').getAttribute('key')}"
+          Interop.mkAttr "@click" "selectedContactKey = $el.closest('li').getAttribute('key')"
           prop.children
               [ if hasValue contact.first || hasValue contact.last then
                     Html.text $"{contact.first} {contact.last}"
@@ -121,8 +122,8 @@ let htmxLink target (isActive: bool) (contact: Data.ContactRecord) =
                 Html.text " "
                 if contact.favorite then Html.span "★" else Html.none ] ]
 
-let navListItem (isOobResponse: bool) (isActive: bool) (contact: Data.ContactRecord) =
-    let props = [ prop.key contact.id; prop.children [ htmxLink "#detail" isActive contact ] ]
+let navListItem (isOobResponse: bool) (contact: Data.ContactRecord) =
+    let props = [ prop.key contact.id; prop.children [ htmxLink "#detail" contact ] ]
 
     if isOobResponse then
         let swapOob = hx.swapOob $"""true:ul>li[key="{contact.id}"]"""
@@ -130,20 +131,21 @@ let navListItem (isOobResponse: bool) (isActive: bool) (contact: Data.ContactRec
     else
         Html.li props
 
-let navElement (selectedId: string option) (contacts: Data.ContactRecord list) =
-    let isActive (contact: Data.ContactRecord) =
-        match (contact.id, selectedId) with
-        | id, Some selectedId when id = selectedId -> true
-        | _ -> false
+let navElement (contacts: Data.ContactRecord list) =
     Html.nav
         [ prop.id "contacts"
           hx.swapOob "true"
           prop.children
               [ match contacts with
-                | _ :: _ -> Html.ul [ for contact in contacts -> navListItem false (isActive contact) contact ]
+                | _ :: _ -> Html.ul [ for contact in contacts -> navListItem false contact ]
                 | _ -> Html.p [ Html.i "No contacts" ] ] ]
 
-let sidebarElements (query: string option) (nav: ReactElement) =
+let sidebarElements (query: string option) (selectedId: string option) (nav: ReactElement) =
+    let selectedContactKey =
+        match selectedId with
+        | Some s -> @"""" + s + @""""
+        | None -> "null"
+
     fragment
         [ Html.h1 [ prop.text "Remix Contacts" ]
           Html.div
@@ -153,7 +155,9 @@ let sidebarElements (query: string option) (nav: ReactElement) =
                       hx.post "/"
                       hx.indicator "body"
                       prop.children [ Html.button [ prop.type' "submit"; prop.text "New" ] ] ] ]
-          nav ]
+          Html.div
+              [ Interop.mkAttr "x-data" $$$"""{ selectedContactKey: {{{selectedContactKey}}} }"""
+                prop.children nav ] ]
 
 let appStylesHref = "/css/app.css?url"
 
@@ -165,6 +169,7 @@ let appElement (sidebar: ReactElement) (detail: ReactElement) =
                     [ Html.meta [ prop.charset "utf-8" ]
                       Html.meta [ prop.name "viewport"; prop.value "width=device-width, initial-scale=1" ]
                       Html.script [ prop.src "https://unpkg.com/htmx.org@1.6.0" ]
+                      Html.script [ prop.src "https://unpkg.com/alpinejs"; prop.defer true ]
                       Html.link [ prop.rel "stylesheet"; prop.href appStylesHref ] ]
                 Html.body
                     [ Html.div [ prop.id "sidebar"; prop.children sidebar ]
