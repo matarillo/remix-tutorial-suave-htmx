@@ -162,7 +162,7 @@ let init () =
     let generateKey (values: ContactMutation) =
         let first = Option.defaultValue "" values.first
         let last = Option.defaultValue "" values.last
-        $"{String.toLowerInvariant first}-{String.toLowerInvariant last}"
+        $"{String.toLowerInvariant first} {String.toLowerInvariant last}".Replace(" ", "-")
 
     [ { emptyMutation with
           avatar = Some "https://sessionize.com/image/124e-400o400o2-wHVdAuNaxi8KJrgtN3ZKci.jpg"

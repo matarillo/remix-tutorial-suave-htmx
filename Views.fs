@@ -146,6 +146,21 @@ let sidebarElements (query: string option) (selectedId: string option) (nav: Rea
         | Some s -> @"""" + s + @""""
         | None -> "null"
 
+    let alpineData = $$$"""{
+    selectedContactKey: {{{selectedContactKey}}},
+    init() {
+        this.syncSelection();
+        window.addEventListener('popstate', () => {
+            this.syncSelection();
+        });
+    },
+    syncSelection() {
+        const path = window.location.pathname;
+        const match = path.match(/^\/contacts\/([^\/]+)/);
+        this.selectedContactKey = match ? match[1] : null;
+    }
+}"""
+
     fragment
         [ Html.h1 [ prop.text "Remix Contacts" ]
           Html.div
@@ -156,7 +171,8 @@ let sidebarElements (query: string option) (selectedId: string option) (nav: Rea
                       hx.indicator "body"
                       prop.children [ Html.button [ prop.type' "submit"; prop.text "New" ] ] ] ]
           Html.div
-              [ Interop.mkAttr "x-data" $$$"""{ selectedContactKey: {{{selectedContactKey}}} }"""
+              [ Interop.mkAttr "x-data" alpineData
+                Interop.mkAttr "x-init" "init()"
                 prop.children nav ] ]
 
 let appStylesHref = "/css/app.css?url"
